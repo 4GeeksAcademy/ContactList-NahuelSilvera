@@ -1,48 +1,137 @@
-import React, { useState, useEffect } from "react";
-import getState from "./flux.js";
+import React, { createContext, useState } from "react";
 
-// Don't change, here is where we initialize our context, by default it's just going to be null.
-export const Context = React.createContext(null);
+const Context = createContext(null);
 
-// This function injects the global store to any view/component where you want to use it, we will inject the context to layout.js, you can see it here:
-// https://github.com/4GeeksAcademy/react-hello-webapp/blob/master/src/js/layout.js#L35
-const injectContext = PassedComponent => {
-	const StoreWrapper = props => {
-		//this will be passed as the contenxt value
-		const [state, setState] = useState(
-			getState({
-				getStore: () => state.store,
-				getActions: () => state.actions,
-				setStore: updatedStore =>
-					setState({
-						store: Object.assign(state.store, updatedStore),
-						actions: { ...state.actions }
-					})
-			})
-		);
+const getState = ({ getStore, getActions, setStore }) => {
+    return {
+        store: {
+            listContacts: [],
+            showToast: false,
+            toastMessage: ""
+        },
+        actions: {
+            createUser: () => {
+                fetch("https://playground.4geeks.com/contact/agendas/4geeks-user", {
+                    method: "POST",
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        console.log(data);
+                    })
+                    .catch((error) => console.log(error));
+            },
 
-		useEffect(() => {
-			/**
-			 * EDIT THIS!
-			 * This function is the equivalent to "window.onLoad", it only runs once on the entire application lifetime
-			 * you should do your ajax requests or fetch api requests here. Do not use setState() to save data in the
-			 * store, instead use actions, like this:
-			 *
-			 * state.actions.loadSomeData(); <---- calling this function from the flux.js actions
-			 *
-			 **/
-		}, []);
+            getInfoContacts: () => {
+                return fetch("https://playground.4geeks.com/contact/agendas/4geeks-user/contacts", {
+                    method: "GET"
+                })
+                    .then((response) => {
+                        if (response.status == 404) {
+                            getActions().createUser()
+                        }
+                        if (response.ok) {
+                            return response.json()
+                        }
+                    })
+                    .then((data) => {
+                        if (data) {
+                            setStore({ listContacts: data.contacts });
+                        }
+                    }) 
+                    .catch((error => console.log(error)))
+            },
 
-		// The initial value for the context is not null anymore, but the current state of this component,
-		// the context will now have a getStore, getActions and setStore functions available, because they were declared
-		// on the state of this component
-		return (
-			<Context.Provider value={state}>
-				<PassedComponent {...props} />
-			</Context.Provider>
-		);
-	};
-	return StoreWrapper;
+            addContactToList: (contact) => {
+                const store = getStore();
+                setStore({ ...store, listContacts: [...store.listContacts, contact] });
+            },
+
+            createContact: (payload) => {
+                fetch("https://playground.4geeks.com/contact/agendas/4geeks-user/contacts", {
+                    method: "POST",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload),
+                })
+                    .then((response) => response.json())
+                    .then((data) => {
+                        const actions = getActions(); 
+                        actions.addContactToList(data); 
+                        console.log("Contact added:", data);
+                    })
+                    .catch((error) => console.log(error));
+            },
+            deleteContact: (id) => {
+                fetch(`https://playground.4geeks.com/contact/agendas/4geeks-user/contacts/${id}`, {
+                    method: "DELETE",
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            const store = getStore();
+                            const updatedContacts = store.listContacts.filter(contact => contact.id !== id);
+                            setStore({ listContacts: updatedContacts });
+                            console.log(`Contact with ID ${id} deleted`);
+                        } else {
+                            console.log("Error deleting contact");
+                        }
+                    })
+                    .catch((error) => console.log(error));
+            },
+
+            editContact: (id, contact) => {
+                const store = getStore();
+                fetch(`https://playground.4geeks.com/contact/agendas/4geeks-user/contacts/${id}`, {
+                    method: "PUT",
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(contact)
+                })
+                    .then((response) => {
+                        if (response.ok) {
+                            return response.json();
+                        }
+                    })
+                    .then((data) => {
+                        if (data) {
+                            const updatedList = store.listContacts.map(contact => {
+                                if (contact.id == id) {
+                                    contact = data;
+                                }
+                                return contact;
+                            });
+                            setStore({ listContacts: updatedList, showToast: true, toastMessage: "Contacto modificado" });
+                        }
+                    })
+                    .catch((error) => console.log(error));
+            },
+            hideToast: () => {
+                setStore({ showToast: false, toastMessage: "" });
+            }
+        }
+    }
 };
 
-export default injectContext;
+const injectContext = PassedComponent => {
+    const StoreWrapper = props => {
+        const [state, setState] = useState(getState({
+            getStore: () => state.store,
+            getActions: () => state.actions,
+            setStore: updatedStore =>
+                setState({
+                    store: Object.assign(state.store, updatedStore),
+                    actions: { ...state.actions }
+                })
+        }));
+
+        return (
+            <Context.Provider value={state}>
+                <PassedComponent {...props} />
+            </Context.Provider>
+        );
+    };
+    return StoreWrapper;
+};
+
+export { Context, injectContext };
