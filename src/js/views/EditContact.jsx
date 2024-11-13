@@ -66,7 +66,7 @@ const EditContact = () => {
         <div className="container mt-3">
             <h1 className="text-center">Editar Contacto: {name}</h1>
 
-            <form onSubmit={guardarContacto}>
+            <form onSubmit={saveContact}>
                 <div className="mb-3">
                     <label htmlFor="name" className="form-label">Nombre</label>
                     <input type="text" className="form-control" id="name" placeholder="Nombre completo" onChange={(e) => setName(e.target.value)} value={name} required />
