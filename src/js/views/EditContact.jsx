@@ -41,7 +41,7 @@ const EditContact = () => {
         }
     }
 
-    function guardarContacto(e) {
+    function saveContact(e) {
         e.preventDefault();
         if (name.trim() === "" || phone.trim() === "" || email.trim() === "" || address.trim() === "") {
             alert("Campos vacíos");
@@ -88,7 +88,7 @@ const EditContact = () => {
                     <input type="file" className="form-control" id="avatar" onChange={handleImageUpload} />
                 </div>
                 <button type="submit" className="btn btn-secondary">Guardar</button>
-                {/* Botón de cancelar */}
+
                 <button type="button" className="btn btn-primary ms-2" onClick={() => navigate("/")}>Cancelar</button>
             </form>
 

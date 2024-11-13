@@ -9,18 +9,15 @@ const CardContact = ({ contact }) => {
     const [avatar, setAvatar] = useState("");
 
     useEffect(() => {
-        // Obtiene el avatar del contacto desde localStorage
+
         const storedAvatar = localStorage.getItem(`contact-avatar-${contact.id}`);
         
         if (storedAvatar) {
-            // Si existe un avatar guardado (base64), lo usamos
             setAvatar(storedAvatar);
         } else {
-            // Si no hay avatar, genera un color de fondo aleatorio
             const randomColor = `#${Math.floor(Math.random() * 16777215).toString(16)}`; // Color aleatorio
             const avatarIcon = randomColor;
             
-            // Guardamos el color de fondo generado
             localStorage.setItem(`contact-avatar-${contact.id}`, randomColor); // Guardamos el color
             setAvatar(avatarIcon);
         }
@@ -41,7 +38,7 @@ const CardContact = ({ contact }) => {
 
     const eliminarContacto = () => {
         actions.deleteContact(contact.id);
-        localStorage.removeItem(`contact-avatar-${contact.id}`); // Elimina el avatar almacenado al borrar el contacto
+        localStorage.removeItem(`contact-avatar-${contact.id}`);
     };
 
     const handleDelete = () => {

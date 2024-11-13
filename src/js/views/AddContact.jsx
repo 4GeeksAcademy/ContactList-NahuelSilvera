@@ -11,7 +11,6 @@ const AddContact = () => {
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
     const [address, setAddress] = useState("");
-    const [avatar, setAvatar] = useState("");  
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
 
@@ -20,7 +19,7 @@ const AddContact = () => {
         return colors[Math.floor(Math.random() * colors.length)];
     }
 
-    function guardarContacto(e) {
+    function saveContact(e) {
         e.preventDefault();
         if (name.trim() === "" || phone.trim() === "" || email.trim() === "" || address.trim() === "") {
             alert("Campos vacíos");
@@ -48,7 +47,7 @@ const AddContact = () => {
         <div className="container mt-3">
             <h1 className="text-center">Agregar nuevo contacto</h1>
 
-            <form onSubmit={guardarContacto}>
+            <form onSubmit={saveContact}>
                 <div className="mb-3">
                     <label htmlFor="name" className="form-label">Nombre</label>
                     <input type="text" className="form-control" id="name" placeholder="Nombre completo" onChange={(e) => setName(e.target.value)} value={name} required />
@@ -67,7 +66,7 @@ const AddContact = () => {
                 </div>
                 
                 <button type="submit" className="btn btn-secondary">Guardar</button>
-                {/* Botón de cancelar */}
+
                 <button type="button" className="btn btn-primary ms-2" onClick={() => navigate("/")}>Cancelar</button>
             </form>
 
