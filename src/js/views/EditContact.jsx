@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from "react";
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { Context } from "../store/appContext.js";
 import { Toast, ToastContainer } from 'react-bootstrap';
 
@@ -29,75 +29,72 @@ const EditContact = () => {
         }
     }, [id, store.listContacts]);
 
+    function handleImageUpload(e) {
+        const file = e.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                setAvatar(reader.result);
+                localStorage.setItem(`contact-avatar-${id}`, reader.result);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
     function guardarContacto(e) {
         e.preventDefault();
-        if (name.trim() === "" || phone.trim() === "" || email.trim() === "" || address.trim() === "" || avatar === "") {
+        if (name.trim() === "" || phone.trim() === "" || email.trim() === "" || address.trim() === "") {
             alert("Campos vacíos");
             return;
         }
-        
-        const randomAvatar = avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`;
-        
+
         const payload = {
-            name: name,
-            phone: phone,
-            email: email,
-            address: address,
-            avatar: randomAvatar
+            name,
+            phone,
+            email,
+            address,
+            avatar
         };
-        if (!id) {
-            actions.createContact(payload);
-            setToastMessage("Contacto creado");
-        } else {
-            actions.editContact(id, payload);
-            setToastMessage("Contacto modificado");
-        }
+
+        actions.editContact(id, payload);
+        setToastMessage("Contacto modificado");
         setShowToast(true);
-        setTimeout(() => {
-            navigate("/");
-        }, 1000); // Navegar después de 1 segundo
-        setTimeout(() => {
-            setShowToast(false);
-        }, 3000); // Ocultar el toast después de 3 segundos
-        setName("");
-        setPhone("");
-        setEmail("");
-        setAddress("");
-        setAvatar("");
+        setTimeout(() => navigate("/"), 1000);
     }
 
     return (
         <div className="container mt-3">
-            <h1 className="text-center">{!id ? "Agregar nuevo contacto" : `Editar Contacto: ${name}`}</h1>
+            <h1 className="text-center">Editar Contacto: {name}</h1>
 
-            <form className="container" onSubmit={guardarContacto}>
+            <form onSubmit={guardarContacto}>
                 <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput1" className="form-label">Nombre</label>
-                    <input type="text" className="form-control" id="formGroupExampleInput1" placeholder="Nombre completo" onChange={(e) => setName(e.target.value)} value={name} required />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput2" className="form-label">Email</label>
-                    <input type="email" className="form-control" id="formGroupExampleInput2" placeholder="Ingresa email" onChange={(e) => setEmail(e.target.value)} value={email} required />
+                    <label htmlFor="name" className="form-label">Nombre</label>
+                    <input type="text" className="form-control" id="name" placeholder="Nombre completo" onChange={(e) => setName(e.target.value)} value={name} required />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput3" className="form-label">Teléfono</label>
-                    <input type="text" className="form-control" id="formGroupExampleInput3" placeholder="Ingresa teléfono" onChange={(e) => setPhone(e.target.value)} value={phone} required />
+                    <label htmlFor="email" className="form-label">Email</label>
+                    <input type="email" className="form-control" id="email" placeholder="Ingresa email" onChange={(e) => setEmail(e.target.value)} value={email} required />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput4" className="form-label">Dirección</label>
-                    <input type="text" className="form-control" id="formGroupExampleInput4" placeholder="Ingresa dirección" onChange={(e) => setAddress(e.target.value)} value={address} required />
+                    <label htmlFor="phone" className="form-label">Teléfono</label>
+                    <input type="text" className="form-control" id="phone" placeholder="Ingresa teléfono" onChange={(e) => setPhone(e.target.value)} value={phone} required />
                 </div>
-                <div className="mb-3 d-flex justify-content-between">
-                    <button type="submit" className="btn btn-secondary">Guardar</button>
-                    <button type="button" className="btn btn-primary" onClick={() => navigate("/")}>Cancelar</button>
+                <div className="mb-3">
+                    <label htmlFor="address" className="form-label">Dirección</label>
+                    <input type="text" className="form-control" id="address" placeholder="Ingresa dirección" onChange={(e) => setAddress(e.target.value)} value={address} required />
                 </div>
+                <div className="mb-3">
+                    <label htmlFor="avatar" className="form-label">Avatar</label>
+                    <input type="file" className="form-control" id="avatar" onChange={handleImageUpload} />
+                </div>
+                <button type="submit" className="btn btn-secondary">Guardar</button>
+                {/* Botón de cancelar */}
+                <button type="button" className="btn btn-primary ms-2" onClick={() => navigate("/")}>Cancelar</button>
             </form>
 
             <ToastContainer position="top-end" className="p-3">
                 <Toast onClose={() => setShowToast(false)} show={showToast} delay={3000} autohide>
-                    <Toast.Header>
-                        <strong className="me-auto">Éxito</strong>
-                    </Toast.Header>
+                    <Toast.Header><strong className="me-auto">Éxito</strong></Toast.Header>
                     <Toast.Body>{toastMessage}</Toast.Body>
                 </Toast>
             </ToastContainer>

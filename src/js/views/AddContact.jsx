@@ -1,33 +1,24 @@
-import React, { useState, useEffect, useContext } from "react";
-import { Link, useNavigate, useParams } from 'react-router-dom';
+import React, { useState, useContext } from "react";
+import { useNavigate } from 'react-router-dom';
 import { Context } from "../store/appContext.js";
 import { Toast, ToastContainer } from 'react-bootstrap';
 
 const AddContact = () => {
-    const { store, actions } = useContext(Context);
+    const { actions } = useContext(Context);
     let navigate = useNavigate();
-    const { id } = useParams(); 
 
     const [name, setName] = useState("");
     const [phone, setPhone] = useState("");
     const [email, setEmail] = useState("");
     const [address, setAddress] = useState("");
-    const [avatar, setAvatar] = useState("");
+    const [avatar, setAvatar] = useState("");  
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
 
-    useEffect(() => {
-        if (id && store.listContacts.length > 0) {
-            const currentContact = store.listContacts.find(contact => contact.id == id);
-            if (currentContact) {
-                setName(currentContact.name);
-                setPhone(currentContact.phone);
-                setEmail(currentContact.email);
-                setAddress(currentContact.address);
-                setAvatar(currentContact.avatar);
-            }
-        }
-    }, [id, store.listContacts]);
+    function generateRandomAvatarColor() {
+        const colors = ["#FF5733", "#33FF57", "#3357FF", "#FF33A1", "#FFBD33"];
+        return colors[Math.floor(Math.random() * colors.length)];
+    }
 
     function guardarContacto(e) {
         e.preventDefault();
@@ -35,69 +26,54 @@ const AddContact = () => {
             alert("Campos vacíos");
             return;
         }
-        
-        const randomAvatar = avatar || `https://i.pravatar.cc/150?img=${Math.floor(Math.random() * 70) + 1}`;
-        
+
+        const avatarColor = generateRandomAvatarColor();
+        const avatarData = avatarColor; 
+
         const payload = {
-            name: name,
-            phone: phone,
-            email: email,
-            address: address,
-            avatar: randomAvatar
+            name,
+            phone,
+            email,
+            address,
+            avatar: avatarData 
         };
-        if (!id) {
-            actions.createContact(payload);
-            setToastMessage("Contacto creado");
-        } else {
-            actions.editContact(id, payload);
-            setToastMessage("Contacto modificado");
-        }
+
+        actions.createContact(payload);
+        setToastMessage("Contacto creado");
         setShowToast(true);
-        setTimeout(() => {
-            navigate("/");
-        }, 1000); // Navegar después de 1 segundo
-        setTimeout(() => {
-            setShowToast(false);
-        }, 3000); // Ocultar el toast después de 3 segundos
-        setName("");
-        setPhone("");
-        setEmail("");
-        setAddress("");
-        setAvatar("");
+        setTimeout(() => navigate("/"), 1000);
     }
 
     return (
         <div className="container mt-3">
-            <h1 className="text-center">{!id ? "Agregar nuevo contacto" : `Editar Contacto: ${name}`}</h1>
+            <h1 className="text-center">Agregar nuevo contacto</h1>
 
-            <form className="container" onSubmit={guardarContacto}>
+            <form onSubmit={guardarContacto}>
                 <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput1" className="form-label">Nombre</label>
-                    <input type="text" className="form-control" id="formGroupExampleInput1" placeholder="Nombre completo" onChange={(e) => setName(e.target.value)} value={name} required />
-                </div>
-                <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput2" className="form-label">Email</label>
-                    <input type="email" className="form-control" id="formGroupExampleInput2" placeholder="Ingresa email" onChange={(e) => setEmail(e.target.value)} value={email} required />
+                    <label htmlFor="name" className="form-label">Nombre</label>
+                    <input type="text" className="form-control" id="name" placeholder="Nombre completo" onChange={(e) => setName(e.target.value)} value={name} required />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput3" className="form-label">Teléfono</label>
-                    <input type="text" className="form-control" id="formGroupExampleInput3" placeholder="Ingresa teléfono" onChange={(e) => setPhone(e.target.value)} value={phone} required />
+                    <label htmlFor="email" className="form-label">Email</label>
+                    <input type="email" className="form-control" id="email" placeholder="Ingresa email" onChange={(e) => setEmail(e.target.value)} value={email} required />
                 </div>
                 <div className="mb-3">
-                    <label htmlFor="formGroupExampleInput4" className="form-label">Dirección</label>
-                    <input type="text" className="form-control" id="formGroupExampleInput4" placeholder="Ingresa dirección" onChange={(e) => setAddress(e.target.value)} value={address} required />
+                    <label htmlFor="phone" className="form-label">Teléfono</label>
+                    <input type="text" className="form-control" id="phone" placeholder="Ingresa teléfono" onChange={(e) => setPhone(e.target.value)} value={phone} required />
                 </div>
-                <div className="mb-3 d-flex justify-content-between">
-                    <button type="submit" className="btn btn-secondary">Guardar</button>
-                    <button type="button" className="btn btn-primary" onClick={() => navigate("/")}>Cancelar</button>
+                <div className="mb-3">
+                    <label htmlFor="address" className="form-label">Dirección</label>
+                    <input type="text" className="form-control" id="address" placeholder="Ingresa dirección" onChange={(e) => setAddress(e.target.value)} value={address} required />
                 </div>
+                
+                <button type="submit" className="btn btn-secondary">Guardar</button>
+                {/* Botón de cancelar */}
+                <button type="button" className="btn btn-primary ms-2" onClick={() => navigate("/")}>Cancelar</button>
             </form>
 
             <ToastContainer position="top-end" className="p-3">
                 <Toast onClose={() => setShowToast(false)} show={showToast} delay={3000} autohide>
-                    <Toast.Header>
-                        <strong className="me-auto">Éxito</strong>
-                    </Toast.Header>
+                    <Toast.Header><strong className="me-auto">Éxito</strong></Toast.Header>
                     <Toast.Body>{toastMessage}</Toast.Body>
                 </Toast>
             </ToastContainer>
